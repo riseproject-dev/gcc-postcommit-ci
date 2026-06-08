@@ -64,6 +64,7 @@ def download_summaries(artifact_name: str, token: str, repo: str):
         "coord_",
         "release_14_",
         "release_15_",
+        "release_16_",
         "binutils_",
         "checking_",
     ]:
@@ -75,13 +76,10 @@ def download_summaries(artifact_name: str, token: str, repo: str):
             artifact_name = prefix + artifact_name
             break
     assert artifact_id is not None
-    if (
-        "coord_" in artifact_name
-        or "release_14_" in artifact_name
-        or "release_15_" in artifact_name
-        or "binutils_" in artifact_name
+    if artifact_name.startswith(("coord_", "binutils_")) or artifact_name.startswith(
+        "release_"
     ):
-        # Ignore coordnation/release/binutils runs
+        # Ignore coordination/release/binutils runs
         return None
     artifact_path = download_artifact(artifact_name, artifact_id, token, repo, "temp")
     return artifact_path

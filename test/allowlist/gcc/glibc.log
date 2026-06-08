@@ -29,4 +29,4 @@ FAIL: gcc.dg/vect/tsvc/vect-tsvc-s1281.c
 #
 # TODO: Root cause & file bugzilla
 #
-FAIL: gcc.misc-tests/gcov-pr86536.c 
+FAIL: gcc.misc-tests/gcov-pr86536.c
