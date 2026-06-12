@@ -48,7 +48,6 @@ on:
           - "binutils_"
           - "checking_"
           - "coord_"
-          - "release_14_"
           - "release_15_"
           - "release_16_"
           - "rv32_zvl_"
@@ -61,7 +60,6 @@ on:
         options:
           - 'master'
           - 'coordination'
-          - 'release-14'
           - 'release-15'
           - 'release-16'
       binutils_branch:
