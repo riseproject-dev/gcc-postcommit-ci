@@ -62,6 +62,19 @@ def plot_cumulative_state(
     df: pd.DataFrame, outfile: str, wrap: int = 3, filtered: bool = False
 ):
     suffix = " execution" if filtered else ""
+    if df.empty:
+        print(f"No data available for {outfile}; writing placeholder page")
+        os.makedirs(os.path.dirname(outfile) or ".", exist_ok=True)
+        with open(outfile, "w", encoding="utf-8") as f:
+            f.write(
+                "<!doctype html>\n"
+                '<html><head><meta charset="utf-8">'
+                "<title>No dashboard data</title></head>\n"
+                "<body><h1>No dashboard data</h1>\n"
+                "<p>No data is available for this target group.</p></body></html>\n"
+            )
+        return
+
     range_max = max(df["hash_timestamp"]) + datetime.timedelta(hours=6)
 
     range_min = max(df["hash_timestamp"]) - datetime.timedelta(days=9)
