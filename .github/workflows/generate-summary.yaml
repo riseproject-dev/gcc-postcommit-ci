@@ -48,8 +48,8 @@ on:
           - "binutils_"
           - "checking_"
           - "coord_"
-          - "release_14_"
           - "release_15_"
+          - "release_16_"
           - "rv32_zvl_"
           - "rv64_zvl_"
           - "zve_"
@@ -60,7 +60,8 @@ on:
         options:
           - 'master'
           - 'coordination'
-          - 'release-14'
+          - 'release-15'
+          - 'release-16'
       binutils_branch:
         description: 'Binutils branch'
         default: 'master'
@@ -200,7 +201,7 @@ jobs:
 
       - name: Download All targets
         uses: ./.github/actions/download-all-comparison-artifacts
-        if: ${{ inputs.prefix == '' || inputs.prefix == 'coord_' || inputs.prefix == 'release_14_' || inputs.prefix == 'release_15_' }}
+        if: ${{ inputs.prefix == '' || inputs.prefix == 'coord_' || startsWith(inputs.prefix, 'release_') }}
         with:
           gcchash: ${{ inputs.gcchash }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -208,7 +209,7 @@ jobs:
 
       - name: Download All targets
         uses: ./.github/actions/download-all-weekly-artifacts
-        if: ${{ inputs.prefix != '' && inputs.prefix != 'coord_' && inputs.prefix != 'release_14_' || inputs.prefix == 'release_15_' }}
+        if: ${{ inputs.prefix != '' && inputs.prefix != 'coord_' && !startsWith(inputs.prefix, 'release_') }}
         with:
           gcchash: ${{ inputs.gcchash }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -795,7 +796,7 @@ jobs:
 
       - name: Download All targets
         uses: ./.github/actions/download-all-comparison-artifacts
-        if: ${{ inputs.prefix == '' || inputs.prefix == 'coord_' || inputs.prefix == 'release_14_' || inputs.prefix == 'release_15_' }}
+        if: ${{ inputs.prefix == '' || inputs.prefix == 'coord_' || startsWith(inputs.prefix, 'release_') }}
         with:
           gcchash: ${{ steps.bisection-hash.outputs.orig_gcchash }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -803,7 +804,7 @@ jobs:
 
       - name: Download All targets
         uses: ./.github/actions/download-all-weekly-artifacts
-        if: ${{ inputs.prefix != '' && inputs.prefix != 'coord_' && inputs.prefix != 'release_14_' || inputs.prefix == 'release_15_' }}
+        if: ${{ inputs.prefix != '' && inputs.prefix != 'coord_' && !startsWith(inputs.prefix, 'release_') }}
         with:
           gcchash: ${{ steps.bisection-hash.outputs.orig_gcchash }}
           token: ${{ secrets.GITHUB_TOKEN }}

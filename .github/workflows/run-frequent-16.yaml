@@ -1,6 +1,6 @@
-name: Run-Frequent-14
+name: Run-Frequent-16
 
-# Checks for new commits and run regression tests on the GCC 14 release branch
+# Checks for new commits and run regression tests on the GCC 16 release branch
 
 on:
   schedule:
@@ -34,9 +34,9 @@ jobs:
   init-submodules:
     uses: ./.github/workflows/init-submodules.yaml
     with:
-      prefix: 'release_14_'
+      prefix: 'release_16_'
       gcchash: ${{ inputs.gcchash }}
-      gcc_branch: 'release-14'
+      gcc_branch: 'release-16'
 
   creg: # Check Regressions. Short name so I can see the matrix string in github
     needs: [init-submodules]
@@ -60,7 +60,7 @@ jobs:
       multilib: ${{ matrix.multilib }}
       multitarget: ${{ github.event.inputs.multi_target }}
       run_on_self_hosted: false
-      prefix: 'release_14_'
+      prefix: 'release_16_'
 
   cmreg-self-hosted: # Check Multilib Regressions. Short name so I can see the matrix string in github
     needs: [init-submodules]
@@ -83,7 +83,7 @@ jobs:
       multilib: ${{ matrix.multilib }}
       multitarget: ${{ github.event.inputs.multi_target }}
       run_on_self_hosted: true
-      prefix: 'release_14_'
+      prefix: 'release_16_'
 
   cmreg-self-hosted-uc: # Check Multilib Regressions. Short name so I can see the matrix string in github
     needs: [init-submodules]
@@ -106,7 +106,7 @@ jobs:
       multilib: ${{ matrix.multilib }}
       multitarget: ${{ github.event.inputs.multi_target }}
       run_on_self_hosted: true
-      prefix: 'release_14_'
+      prefix: 'release_16_'
 
   summarize:
     if: "!cancelled()" # Generate github issues even when some (or all) targets fail to build
@@ -117,6 +117,6 @@ jobs:
     with:
       gcchash: ${{ needs.init-submodules.outputs.gcchash }}
       issue_num: ${{ inputs.issue_num }}
-      issue_hash_prefix: Release 14 Branch Testsuite Status
-      prefix: 'release_14_'
-      gcc_branch: release-14
+      issue_hash_prefix: Release 16 Branch Testsuite Status
+      prefix: 'release_16_'
+      gcc_branch: release-16
