@@ -3,14 +3,17 @@ name: Deploy-Dashboard
 on:
   push:
     branches: ["main"]
+    paths-ignore:
+      - "dashboard/**"
   schedule:
     - cron: 0 0,8,16 * * *
   workflow_dispatch:
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Serialize dashboard deployments on the same ref to reduce auto-commit push races.
+# Dashboard-only auto-commits are ignored by the push trigger below, so they do not
+# immediately retrigger this workflow.
 concurrency:
-  group: "pages"
+  group: deploy-dashboard-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
