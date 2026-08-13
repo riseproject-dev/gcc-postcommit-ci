@@ -3,23 +3,23 @@
 This repo runs the GCC testsuite on a variety of risc-v targets.
 
 # Dashboards
-- [Main](https://patrick-rivos.github.io/gcc-postcommit-ci/)
-- [All](https://patrick-rivos.github.io/gcc-postcommit-ci/all)
-- [gcv](https://patrick-rivos.github.io/gcc-postcommit-ci/gcv)
-- [gc](https://patrick-rivos.github.io/gcc-postcommit-ci/gc)
-- [Bitmanip](https://patrick-rivos.github.io/gcc-postcommit-ci/bitmanip)
-- [RVA23](https://patrick-rivos.github.io/gcc-postcommit-ci/rva23)
-- [Vector Crypto](https://patrick-rivos.github.io/gcc-postcommit-ci/vector_crypto)
-- [All Execution Failures](https://patrick-rivos.github.io/gcc-postcommit-ci/all-filtered)
-- [gcv Execution Failures](https://patrick-rivos.github.io/gcc-postcommit-ci/gcv-filtered)
-- [gc Execution Failures](https://patrick-rivos.github.io/gcc-postcommit-ci/gc-filtered)
-- [Bitmanip Execution Failures](https://patrick-rivos.github.io/gcc-postcommit-ci/bitmanip-filtered)
-- [RVA23 Execution Failures](https://patrick-rivos.github.io/gcc-postcommit-ci/rva23-filtered)
-- [Vector Crypto Execution Failures](https://patrick-rivos.github.io/gcc-postcommit-ci/vector_crypto-filtered)
+- [Main](https://riseproject-dev.github.io/gcc-postcommit-ci/)
+- [All](https://riseproject-dev.github.io/gcc-postcommit-ci/all)
+- [gcv](https://riseproject-dev.github.io/gcc-postcommit-ci/gcv)
+- [gc](https://riseproject-dev.github.io/gcc-postcommit-ci/gc)
+- [Bitmanip](https://riseproject-dev.github.io/gcc-postcommit-ci/bitmanip)
+- [RVA23](https://riseproject-dev.github.io/gcc-postcommit-ci/rva23)
+- [Vector Crypto](https://riseproject-dev.github.io/gcc-postcommit-ci/vector_crypto)
+- [All Execution Failures](https://riseproject-dev.github.io/gcc-postcommit-ci/all-filtered)
+- [gcv Execution Failures](https://riseproject-dev.github.io/gcc-postcommit-ci/gcv-filtered)
+- [gc Execution Failures](https://riseproject-dev.github.io/gcc-postcommit-ci/gc-filtered)
+- [Bitmanip Execution Failures](https://riseproject-dev.github.io/gcc-postcommit-ci/bitmanip-filtered)
+- [RVA23 Execution Failures](https://riseproject-dev.github.io/gcc-postcommit-ci/rva23-filtered)
+- [Vector Crypto Execution Failures](https://riseproject-dev.github.io/gcc-postcommit-ci/vector_crypto-filtered)
 
 ## GCV Weekly runs:
-- [gcv_zvl](https://patrick-rivos.github.io/gcc-postcommit-ci/gcv_zvl)
-- [gcv_zve](https://patrick-rivos.github.io/gcc-postcommit-ci/gcv_zve)
+- [gcv_zvl](https://riseproject-dev.github.io/gcc-postcommit-ci/gcv_zvl)
+- [gcv_zve](https://riseproject-dev.github.io/gcc-postcommit-ci/gcv_zve)
 - lmul 2 TODO
 - lmul 4 TODO
 - lmul 8 TODO
