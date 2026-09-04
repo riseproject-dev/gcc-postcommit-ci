@@ -9,6 +9,9 @@ on:
     - cron: 0 0,8,16 * * *
   workflow_dispatch:
 
+env:
+  POSTCOMMIT_REPOSITORY: ${{ github.repository }}
+
 # Serialize dashboard deployments on the same ref to reduce auto-commit push races.
 # Dashboard-only auto-commits are ignored by the push trigger below, so they do not
 # immediately retrigger this workflow.
@@ -23,7 +26,9 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-24.04
     permissions:
+      actions: read
       contents: write
+      issues: read
       pages: write
       id-token: write
     steps:
@@ -40,8 +45,6 @@ jobs:
         run: |
           cd riscv-gnu-toolchain
           git submodule update --init gcc
-          git fetch
-          git reset --hard origin/build-frequent
           cd gcc
           git fetch
         continue-on-error: true
@@ -52,8 +55,6 @@ jobs:
           echo "Failed to initialize gcc. Retrying in 1 min"
           sleep 60
           cd riscv-gnu-toolchain
-          git fetch
-          git reset --hard origin/build-frequent
           git submodule update --init gcc
           cd gcc
           git fetch
@@ -69,7 +70,7 @@ jobs:
         run: |
           pip install pygithub requests
           cd dashboard
-          python getdata.py -token ${{ secrets.GITHUB_TOKEN }}
+          python getdata.py -token ${{ secrets.GITHUB_TOKEN }} -repo "${POSTCOMMIT_REPOSITORY}"
 
       - name: Build site
         run: |

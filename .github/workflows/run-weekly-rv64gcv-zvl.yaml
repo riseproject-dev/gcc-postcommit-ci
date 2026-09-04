@@ -7,8 +7,15 @@ on:
     # Run at 4:00pm on Wednesdays
     - cron: 0 16 * * 3
   workflow_dispatch:
-    branches:
-      - main
+    inputs:
+      multi_target:
+        description: 'Only run the selected mode:target pairs (Optional)'
+        required: false
+        type: string
+      issue_num:
+        description: 'Issue number of baseline (Optional)'
+        required: false
+        type: string
 
 jobs:
   init-submodules:
@@ -46,6 +53,8 @@ jobs:
     if: "!cancelled()" # Generate github issues even when some (or all) targets fail to build
     needs: [init-submodules, zvl-variants-self-hosted]
     permissions:
+      actions: read
+      contents: read
       issues: write
     uses: ./.github/workflows/generate-summary.yaml
     secrets: inherit

@@ -70,7 +70,7 @@ runs:
           cd gcc
           git config --add remote.origin.fetch "+refs/vendors/riscv/*:refs/remotes/upstream/vendors/riscv/*"
           git fetch
-          git checkout upstream/vendors/riscv/heads/gcc-14-with-riscv-opts
+          git checkout upstream/vendors/riscv/heads/gcc-15-with-riscv-opts
         continue-on-error: true
 
       - name: Sleep and retry
@@ -83,7 +83,7 @@ runs:
           cd gcc
           git config --add remote.origin.fetch "+refs/vendors/riscv/*:refs/remotes/upstream/vendors/riscv/*"
           git fetch
-          git checkout upstream/vendors/riscv/heads/gcc-14-with-riscv-opts
+          git checkout upstream/vendors/riscv/heads/gcc-15-with-riscv-opts
 
       - name: Checkout release branch
         shell: bash

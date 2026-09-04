@@ -7,8 +7,15 @@ on:
     # Run at 5:00am
     - cron: 0 5 * * *
   workflow_dispatch:
-    branches:
-      - main
+    inputs:
+      multi_target:
+        description: 'Only run the selected mode:target pairs (Optional)'
+        required: false
+        type: string
+      issue_num:
+        description: 'Issue number of baseline (Optional)'
+        required: false
+        type: string
 
 jobs:
   # init-submodules sees "binutils_" and lies to us, giving us the binutils hash instead of the gcc hash.
@@ -49,6 +56,8 @@ jobs:
     if: "!cancelled()" # Generate github issues even when some (or all) targets fail to build
     needs: [init-submodules, binutils-self-hosted]
     permissions:
+      actions: read
+      contents: read
       issues: write
     uses: ./.github/workflows/generate-summary.yaml
     secrets: inherit

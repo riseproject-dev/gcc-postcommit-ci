@@ -9,8 +9,6 @@ on:
     branches:
       - main
   workflow_dispatch:
-    branches:
-      - main
     inputs:
       gcchash:
         description: 'GCC Hash'
@@ -19,15 +17,21 @@ on:
         description: 'Bisection Issue Number (Optional)'
         required: false
 
+env:
+  POSTCOMMIT_REPOSITORY: ${{ github.repository }}
+
 jobs:
   manually-triggered-workflow-dispatch:
     uses: ./.github/workflows/run-frequent.yaml
     if: ${{ inputs.gcchash != '' }}
     permissions:
+      actions: read
+      contents: read
       issues: write
     with:
       gcchash: ${{ inputs.gcchash }}
       issue_num: ${{ inputs.issue_num }}
+    secrets: inherit
 
   get-hash:
     runs-on: ubuntu-24.04
@@ -52,7 +56,7 @@ jobs:
         id: baseline-hash
         run: |
           cd riscv-gnu-toolchain
-          python ./scripts/get_staging_hash.py -token ${{ secrets.GITHUB_TOKEN }} -repo patrick-rivos/gcc-postcommit-ci
+          python ./scripts/get_staging_hash.py -token ${{ secrets.GITHUB_TOKEN }} -repo "${POSTCOMMIT_REPOSITORY}"
           BASELINE_HASH=$(cat issue_hash.txt)
           echo "baseline_hash=$BASELINE_HASH" >> $GITHUB_OUTPUT
 
@@ -70,8 +74,10 @@ jobs:
   run-workflow:
     needs: [get-hash]
     uses: ./.github/workflows/run-frequent.yaml
-    if: ${{ inputs.gcchash == '' }}
+    if: ${{ inputs.gcchash == '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     permissions:
+      actions: read
+      contents: read
       issues: write
     secrets: inherit
     with:

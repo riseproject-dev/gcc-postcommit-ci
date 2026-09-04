@@ -9,7 +9,7 @@ on:
 
 jobs:
   rvv-intrinsic-testing:
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, x64, rise-gcc-ci]
     environment: production
     steps:
       - name: 'Cleanup build folder'
@@ -57,7 +57,7 @@ jobs:
         continue-on-error: true
 
       - name: Clone rvv-intrinsic-doc
-        if: ${{ steps.update-intrinsice.outcome == 'failure' }}
+        if: ${{ steps.update-intrinsic.outcome == 'failure' }}
         run: |
           echo "Failed to update intrinsic doc. Retrying in 1 min"
           sleep 60

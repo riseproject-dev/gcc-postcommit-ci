@@ -7,6 +7,8 @@ inputs:
     required: true
   prefix:
     required: false
+  repository:
+    required: true
 
 runs:
   using: "composite"
@@ -20,6 +22,7 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-linux-rv32gcv_zve64d-ilp32d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-linux-rv32gcv_zve64d-ilp32d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}
 
     - name: Download linux rv64 zve64d
       uses: ./.github/actions/common/download-comparison-artifacts
@@ -28,6 +31,7 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gcv_zve64d-lp64d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gcv_zve64d-lp64d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}
 
     # Download rv64 zvl builds.
 
@@ -38,6 +42,7 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gcv_zvl1024b-lp64d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gcv_zvl1024b-lp64d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}
 
     - name: Download linux rv64-512b
       uses: ./.github/actions/common/download-comparison-artifacts
@@ -46,6 +51,7 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gcv_zvl512b-lp64d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gcv_zvl512b-lp64d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}
 
     - name: Download linux rv64-256b
       uses: ./.github/actions/common/download-comparison-artifacts
@@ -54,6 +60,7 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gcv_zvl256b-lp64d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gcv_zvl256b-lp64d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}
 
     # only have 128b for lmul2 runs
     - name: Download linux rv64-128b
@@ -63,6 +70,7 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gcv_zvl128b-lp64d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gcv_zvl128b-lp64d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}
 
     # Download rv32 zvl builds.
 
@@ -73,6 +81,7 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-linux-rv32gcv_zvl1024b-ilp32d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-linux-rv32gcv_zvl1024b-ilp32d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}
 
     - name: Download linux rv32-512b
       uses: ./.github/actions/common/download-comparison-artifacts
@@ -81,6 +90,7 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-linux-rv32gcv_zvl512b-ilp32d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-linux-rv32gcv_zvl512b-ilp32d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}
 
     - name: Download linux rv32-256b
       uses: ./.github/actions/common/download-comparison-artifacts
@@ -89,6 +99,7 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-linux-rv32gcv_zvl256b-ilp32d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-linux-rv32gcv_zvl256b-ilp32d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}
 
     # Download rv32/64 binutils builds.
 
@@ -99,6 +110,7 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gc-lp64d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gc-lp64d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}
 
     - name: Download linux rv32-binutils
       uses: ./.github/actions/common/download-comparison-artifacts
@@ -107,6 +119,7 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-linux-rv32gc-ilp32d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-linux-rv32gc-ilp32d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}
 
     - name: Download newlib rv64-binutils
       uses: ./.github/actions/common/download-comparison-artifacts
@@ -115,6 +128,7 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-newlib-rv64gc-lp64d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-newlib-rv64gc-lp64d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}
 
     - name: Download newlib rv32-binutils
       uses: ./.github/actions/common/download-comparison-artifacts
@@ -123,6 +137,7 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-newlib-rv32gc-ilp32d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-newlib-rv32gc-ilp32d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}
 
     # Download with checking builds
 
@@ -133,3 +148,4 @@ runs:
         report-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gcv_zicond-lp64d-${{ inputs.gcchash }}-multilib-report.log
         binary-artifact-name: ${{ inputs.prefix }}gcc-linux-rv64gcv_zicond-lp64d-${{ inputs.gcchash }}-multilib
         github-token: ${{ inputs.token }}
+        repository: ${{ inputs.repository }}

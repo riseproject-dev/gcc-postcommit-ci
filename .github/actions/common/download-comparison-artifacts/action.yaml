@@ -7,6 +7,9 @@ inputs:
     required: true
   github-token:
     required: true
+  repository:
+    required: true
+    description: 'Repository to search when the artifact is not in the current workflow'
 
 runs:
   using: "composite"
@@ -30,7 +33,7 @@ runs:
       run: |
         pip install pygithub requests
         cd riscv-gnu-toolchain
-        python ./scripts/download_artifact.py -name ${{ inputs.report-artifact-name }} -repo patrick-rivos/gcc-postcommit-ci -token ${{ inputs.github-token }} -outdir current_logs
+        python ./scripts/download_artifact.py -name ${{ inputs.report-artifact-name }} -repo ${{ inputs.repository }} -token ${{ inputs.github-token }} -outdir current_logs
       continue-on-error: true
 
     - name: Report failed download
@@ -51,9 +54,9 @@ runs:
 
 
     - name: Download binary from another workflow
-      if: ${{ !cancelled() && steps.report-download.outputs.report_download == 'falure' && steps.same-workflow-binary.outcome == 'failure' }}
+      if: ${{ !cancelled() && steps.report-download.outputs.report_download == 'failure' && steps.same-workflow-binary.outcome == 'failure' }}
       shell: bash
       run: |
         cd riscv-gnu-toolchain
-        python ./scripts/download_artifact.py -name ${{ inputs.binary-artifact-name }} -repo patrick-rivos/gcc-postcommit-ci -token ${{ inputs.github-token }} -outdir temp
+        python ./scripts/download_artifact.py -name ${{ inputs.binary-artifact-name }} -repo ${{ inputs.repository }} -token ${{ inputs.github-token }} -outdir temp
       continue-on-error: true
