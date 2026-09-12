@@ -1,10 +1,10 @@
 import argparse
 import contextlib
-import shutil
 import os
+import re
+import shutil
 from typing import Dict, List, Set
 from zipfile import ZipFile
-import json
 import requests
 from compare_testsuite_log import (
     Description,
@@ -12,6 +12,33 @@ from compare_testsuite_log import (
     parse_testsuite_failures,
 )
 from download_artifact import search_for_artifact, download_artifact, extract_artifact
+
+
+DEFAULT_POSTCOMMIT_REPOSITORY = os.environ.get(
+    "POSTCOMMIT_REPOSITORY", "riseproject-dev/gcc-postcommit-ci"
+)
+DATA_FILES = (
+    "linux.csv",
+    "newlib.csv",
+    "filtered_linux.csv",
+    "filtered_newlib.csv",
+)
+CSV_HEADER = (
+    "gcc_hash,hash_timestamp,libc-libname-tool,libc,target,tool,"
+    "unique_fails,total_fails\n"
+)
+DASHBOARD_STATUS_TITLES = (
+    "Testsuite Status",
+    "Testsuite zve Status",
+    "Testsuite rv32gcv-zvl Status",
+    "Testsuite rv64gcv-zvl Status",
+    "Testsuite rv64gcv-zvl lmul2 Status",
+    "Testsuite with checking Status",
+)
+STATUS_ISSUE_PATTERN = re.compile(
+    rf"^(?:{'|'.join(re.escape(title) for title in DASHBOARD_STATUS_TITLES)}) "
+    r"([0-9a-f]{40})$"
+)
 
 
 def parse_arguments():
@@ -28,26 +55,53 @@ def parse_arguments():
         action="store_true",
         help="Build the current_logs from scratch. Takes a long time.",
     )
+    parser.add_argument(
+        "-repo",
+        default=DEFAULT_POSTCOMMIT_REPOSITORY,
+        type=str,
+        help="GitHub repository to read dashboard issues and artifacts from",
+    )
     return parser.parse_args()
 
 
 def get_issue_hashes(token: str, repo: str):
-    issue_url = (
-        f"https://api.github.com/repos/{repo}/issues?page=1&q=is%3Aissue&state=all"
-    )
-    params = {
+    issue_url = f"https://api.github.com/repos/{repo}/issues"
+    query = {"state": "all", "per_page": 100}
+    headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"token {token}",
         "X-Github-Api-Version": "2022-11-28",
     }
-    r = requests.get(issue_url, headers=params)
-    response = json.loads(r.text)
-    print(response)
     hashes: List[str] = []
+    seen_hashes: Set[str] = set()
 
-    for issue in response:
-        if "pull_request" not in issue:
-            hashes.append(issue["title"].split(" ")[-1])
+    while issue_url:
+        response = requests.get(issue_url, headers=headers, params=query, timeout=60)
+        if response.status_code != 200:
+            raise RuntimeError(
+                f"Failed to list dashboard issues from {repo}: "
+                f"HTTP {response.status_code}: {response.text[:500]}"
+            )
+        try:
+            issues = response.json()
+        except ValueError as exc:
+            raise RuntimeError(
+                f"GitHub returned invalid JSON while listing issues from {repo}"
+            ) from exc
+        if not isinstance(issues, list):
+            raise RuntimeError(
+                f"GitHub returned {type(issues).__name__}, expected an issue list"
+            )
+        for issue in issues:
+            if "pull_request" in issue:
+                continue
+            match = STATUS_ISSUE_PATTERN.fullmatch(issue.get("title", ""))
+            if match and match.group(1) not in seen_hashes:
+                hashes.append(match.group(1))
+                seen_hashes.add(match.group(1))
+
+        issue_url = response.links.get("next", {}).get("url")
+        query = None
 
     return hashes
 
@@ -62,7 +116,6 @@ def download_summaries(artifact_name: str, token: str, repo: str):
         "rv64_zvl_lmul2_",
         "rv64_zvl_",
         "coord_",
-        "release_14_",
         "release_15_",
         "release_16_",
         "binutils_",
@@ -75,18 +128,34 @@ def download_summaries(artifact_name: str, token: str, repo: str):
         if artifact_id is not None:
             artifact_name = prefix + artifact_name
             break
-    assert artifact_id is not None
+    if artifact_id is None:
+        print(
+            f"No retained dashboard artifact was found for {artifact_name}; "
+            "skipping this issue"
+        )
+        return None
     if artifact_name.startswith(("coord_", "binutils_")) or artifact_name.startswith(
         "release_"
     ):
         # Ignore coordination/release/binutils runs
         return None
-    artifact_path = download_artifact(artifact_name, artifact_id, token, repo, "temp")
+    try:
+        artifact_path = download_artifact(
+            artifact_name, artifact_id, token, repo, "temp"
+        )
+    except requests.HTTPError as exc:
+        if exc.response is not None and exc.response.status_code == 410:
+            print(
+                f"Dashboard artifact {artifact_name} expired during download; skipping"
+            )
+            return None
+        raise
     return artifact_path
 
 
 def download_logs(token: str, repo: str, existing_hashes: Set[str]):
     hashes = get_issue_hashes(token, repo)
+    shutil.rmtree("temp", ignore_errors=True)
     os.mkdir("temp")
     hashes = [gcc_hash for gcc_hash in hashes if gcc_hash not in existing_hashes]
 
@@ -209,34 +278,21 @@ def aggregate_logs(logs_dir: str, gcc_hash: str):
 def main():
     args = parse_arguments()
 
-    hashes = []
-
     if args.bootstrap:
         shutil.rmtree("./testsuite_runs", ignore_errors=True)
-        data_files = [
-            "linux.csv",
-            "newlib.csv",
-            "filtered_linux.csv",
-            "filtered_newlib.csv",
-        ]
-
-        with contextlib.suppress(FileNotFoundError):
-            for file in data_files:
+        for file in DATA_FILES:
+            with contextlib.suppress(FileNotFoundError):
                 os.remove(file)
-        existing_hashes: Set[str] = set()
-        download_logs(args.token, "patrick-rivos/riscv-gnu-toolchain", existing_hashes)
-        download_logs(args.token, "patrick-rivos/gcc-postcommit-ci", existing_hashes)
-        hashes = sorted(os.listdir("testsuite_runs"))
-        for file in data_files:
+
+    os.makedirs("testsuite_runs", exist_ok=True)
+    for file in DATA_FILES:
+        if not os.path.exists(file) or os.path.getsize(file) == 0:
             with open(file, "w") as csv:
-                csv.write(
-                    "gcc_hash,hash_timestamp,libc-libname-tool,libc,target,tool,unique_fails,total_fails\n"
-                )
-    else:
-        existing_hashes = set(os.listdir("testsuite_runs"))
-        download_logs(args.token, "patrick-rivos/gcc-postcommit-ci", existing_hashes)
-        new_hashes = sorted(set(os.listdir("testsuite_runs")) - existing_hashes)
-        hashes = new_hashes
+                csv.write(CSV_HEADER)
+
+    existing_hashes = set(os.listdir("testsuite_runs"))
+    download_logs(args.token, args.repo, existing_hashes)
+    hashes = sorted(set(os.listdir("testsuite_runs")) - existing_hashes)
 
     print(hashes)
 

@@ -23,10 +23,14 @@ on:
         type: string
       run_on_self_hosted:
         required: true
-        type: string
+        type: boolean
       prefix:
         required: false
         type: string
+
+permissions:
+  actions: read
+  contents: read
 
 jobs:
   check:
@@ -50,7 +54,7 @@ jobs:
       run:
         working-directory: riscv-gnu-toolchain
     needs: [check]
-    if: ${{ needs.check.outputs.early_exit != 'exit' && inputs.run_on_self_hosted != 'true' }}
+    if: ${{ needs.check.outputs.early_exit != 'exit' && !inputs.run_on_self_hosted }}
     steps:
       - uses: actions/checkout@v4
 
@@ -99,7 +103,7 @@ jobs:
           prefix: ${{ inputs.prefix }}
 
     outputs:
-      build_success: ${{ steps.build-status.outputs.build_success }}
+      build_success: ${{ steps.build-status.outputs.build_status }}
 
   test:
     runs-on: ubuntu-24.04
@@ -109,7 +113,7 @@ jobs:
         working-directory: riscv-gnu-toolchain
     needs: [check, build]
     # Skip linux multilib
-    if: ${{ needs.check.outputs.early_exit != 'exit' && inputs.run_on_self_hosted != 'true' }}
+    if: ${{ needs.check.outputs.early_exit != 'exit' && !inputs.run_on_self_hosted }}
     steps:
       - uses: actions/checkout@v4
 
@@ -171,13 +175,13 @@ jobs:
   # We need to rebuild since restoring the artifact won't work
   # (the new path will break the existing build).
   rerun-timeouts:
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, x64, rise-gcc-ci]
     environment: production
     defaults:
       run:
         working-directory: riscv-gnu-toolchain
     needs: [check, build, test]
-    if: ${{ failure() && needs.build.outputs.build_success == 'success' && inputs.run_on_self_hosted != 'true' }}
+    if: ${{ failure() && needs.build.outputs.build_success == 'success' && !inputs.run_on_self_hosted }}
     timeout-minutes: 1440 # 24 hours
     steps:
       - name: 'Cleanup build folder'
@@ -225,7 +229,7 @@ jobs:
           mkdir build
           cd build
           TARGET_TUPLE=($(echo ${{ inputs.target }} | tr "-" "\n"))
-          ../../configure-scripts/${TARGET_TUPLE[0]}-${TARGET_TUPLE[1]}
+          ../../configure-scripts/${{ inputs.prefix }}${TARGET_TUPLE[0]}-${TARGET_TUPLE[1]}
           sed -i "s/ --user / --user --break-system-packages /g" Makefile
 
       - name: Build
@@ -247,13 +251,13 @@ jobs:
   # We need to rebuild since restoring the artifact won't work
   # (the new path will break the existing build).
   run-on-self-hosted:
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, x64, rise-gcc-ci]
     environment: production
     defaults:
       run:
         working-directory: riscv-gnu-toolchain
     needs: [check]
-    if: ${{ needs.check.outputs.early_exit != 'exit' && inputs.run_on_self_hosted == 'true' }}
+    if: ${{ needs.check.outputs.early_exit != 'exit' && inputs.run_on_self_hosted }}
     timeout-minutes: 1440 # 24 hours
     steps:
       - name: 'Cleanup build folder'

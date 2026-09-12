@@ -1,6 +1,10 @@
 # GCC Postcommit CI
 
-This repo runs the GCC testsuite on a variety of risc-v targets.
+This RISE-maintained service runs the GCC testsuite on a variety of RISC-V
+targets. Deployment and ownership requirements are documented in
+[`docs/rise-postcommit-cutover.md`](docs/rise-postcommit-cutover.md); regression
+triage is documented in
+[`docs/postcommit-maintenance-runbook.md`](docs/postcommit-maintenance-runbook.md).
 
 # Dashboards
 - [Main](https://riseproject-dev.github.io/gcc-postcommit-ci/)

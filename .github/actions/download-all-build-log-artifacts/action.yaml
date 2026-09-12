@@ -11,6 +11,8 @@ inputs:
   output-dir:
     required: true
     description: 'Absolute Path to the artifact directory'
+  repository:
+    required: true
 
 runs:
   using: "composite"
@@ -27,6 +29,7 @@ runs:
         build-artifact-name: ${{ inputs.prefix }}linux-rv32gc-ilp32d-${{ inputs.gcchash }}-non-multilib-build-log
         github-token: ${{ inputs.github-token }}
         output-dir: ${{ inputs.output-dir }}
+        repository: ${{ inputs.repository }}
 
     - name: Download linux rv64gc non-multilib
       uses: ./.github/actions/common/download-build-log-artifact
@@ -34,6 +37,7 @@ runs:
         build-artifact-name: ${{ inputs.prefix }}linux-rv64gc-lp64d-${{ inputs.gcchash }}-non-multilib-build-log
         github-token: ${{ inputs.github-token }}
         output-dir: ${{ inputs.output-dir }}
+        repository: ${{ inputs.repository }}
 
     - name: Download linux rv32 bitmanip non-multilib
       uses: ./.github/actions/common/download-build-log-artifact
@@ -41,6 +45,7 @@ runs:
         build-artifact-name: ${{ inputs.prefix }}linux-rv32gc_zba_zbb_zbc_zbs-ilp32d-${{ inputs.gcchash }}-non-multilib-build-log
         github-token: ${{ inputs.github-token }}
         output-dir: ${{ inputs.output-dir }}
+        repository: ${{ inputs.repository }}
 
     - name: Download linux rv64 bitmanip non-multilib
       uses: ./.github/actions/common/download-build-log-artifact
@@ -48,6 +53,7 @@ runs:
         build-artifact-name: ${{ inputs.prefix }}linux-rv64gc_zba_zbb_zbc_zbs-lp64d-${{ inputs.gcchash }}-non-multilib-build-log
         github-token: ${{ inputs.github-token }}
         output-dir: ${{ inputs.output-dir }}
+        repository: ${{ inputs.repository }}
 
     # Newlib
 
@@ -57,6 +63,7 @@ runs:
         build-artifact-name: ${{ inputs.prefix }}newlib-rv32gc-ilp32d-${{ inputs.gcchash }}-non-multilib-build-log
         github-token: ${{ inputs.github-token }}
         output-dir: ${{ inputs.output-dir }}
+        repository: ${{ inputs.repository }}
 
     - name: Download newlib rv64gc non-multilib
       uses: ./.github/actions/common/download-build-log-artifact
@@ -64,6 +71,7 @@ runs:
         build-artifact-name: ${{ inputs.prefix }}newlib-rv64gc-lp64d-${{ inputs.gcchash }}-non-multilib-build-log
         github-token: ${{ inputs.github-token }}
         output-dir: ${{ inputs.output-dir }}
+        repository: ${{ inputs.repository }}
 
     - name: Download newlib rv32 bitmanip non-multilib
       uses: ./.github/actions/common/download-build-log-artifact
@@ -71,6 +79,7 @@ runs:
         build-artifact-name: ${{ inputs.prefix }}newlib-rv32gc_zba_zbb_zbc_zbs-ilp32d-${{ inputs.gcchash }}-non-multilib-build-log
         github-token: ${{ inputs.github-token }}
         output-dir: ${{ inputs.output-dir }}
+        repository: ${{ inputs.repository }}
 
     - name: Download newlib rv64 bitmanip non-multilib
       uses: ./.github/actions/common/download-build-log-artifact
@@ -78,6 +87,7 @@ runs:
         build-artifact-name: ${{ inputs.prefix }}newlib-rv64gc_zba_zbb_zbc_zbs-lp64d-${{ inputs.gcchash }}-non-multilib-build-log
         github-token: ${{ inputs.github-token }}
         output-dir: ${{ inputs.output-dir }}
+        repository: ${{ inputs.repository }}
 
     # Multilib
     - name: Download linux multilib
@@ -86,6 +96,7 @@ runs:
         build-artifact-name: ${{ inputs.prefix }}linux-rv64gcv-lp64d-${{ inputs.gcchash }}-multilib-build-log
         github-token: ${{ inputs.github-token }}
         output-dir: ${{ inputs.output-dir }}
+        repository: ${{ inputs.repository }}
 
     - name: Download newlib multilib
       uses: ./.github/actions/common/download-build-log-artifact
@@ -93,6 +104,7 @@ runs:
         build-artifact-name: ${{ inputs.prefix }}newlib-rv64gcv-lp64d-${{ inputs.gcchash }}-multilib-build-log
         github-token: ${{ inputs.github-token }}
         output-dir: ${{ inputs.output-dir }}
+        repository: ${{ inputs.repository }}
 
     - name: Download newlib uc multilib
       uses: ./.github/actions/common/download-build-log-artifact
@@ -100,6 +112,7 @@ runs:
         build-artifact-name: ${{ inputs.prefix }}newlib-rv64imc-lp64d-${{ inputs.gcchash }}-multilib-build-log
         github-token: ${{ inputs.github-token }}
         output-dir: ${{ inputs.output-dir }}
+        repository: ${{ inputs.repository }}
 
     - name: Download newlib uc bitmanip multilib
       uses: ./.github/actions/common/download-build-log-artifact
@@ -107,6 +120,7 @@ runs:
         build-artifact-name: ${{ inputs.prefix }}newlib-rv64imc_zba_zbb_zbc_zbs-lp64d-${{ inputs.gcchash }}-multilib-build-log
         github-token: ${{ inputs.github-token }}
         output-dir: ${{ inputs.output-dir }}
+        repository: ${{ inputs.repository }}
 
     - name: Print downloaded artifacts
       shell: bash

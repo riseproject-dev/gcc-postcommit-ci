@@ -4,6 +4,11 @@ import pandas as pd
 import plotly.express as px
 
 
+SOURCE_REPOSITORY = os.environ.get(
+    "POSTCOMMIT_REPOSITORY", "riseproject-dev/gcc-postcommit-ci"
+)
+
+
 def clean(old_df: pd.DataFrame):
     df = old_df.replace(" multilib", "", regex=True)
     df.replace(
@@ -98,7 +103,7 @@ def plot_cumulative_state(
         facet_col_spacing=0,  # default is 0.03
         color="tool",
         symbol="tool",
-        title=f'Unique/total{suffix} failures per hash<br><sup>Data sourced from <a href="https://github.com/patrick-rivos/gcc-postcommit-ci">gcc-postcommit-ci</a> and older data from <a href="https://github.com/patrick-rivos/riscv-gnu-toolchain">riscv-gnu-toolchain</a></sup>',
+        title=f'Unique/total{suffix} failures per hash<br><sup>Data sourced from <a href="https://github.com/{SOURCE_REPOSITORY}">gcc-postcommit-ci</a></sup>',
         range_x=[range_min, range_max],
         range_y=[-5, max(df[df["hash_timestamp"] > range_min]["total_fails"]) + 5],
     )

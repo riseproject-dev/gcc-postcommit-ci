@@ -10,8 +10,11 @@ on:
     # Run at 10:32am on Saturdays
     - cron: 32 10 * * 6
   workflow_dispatch:
-    branches:
-      - main
+    inputs:
+      multi_target:
+        description: 'Only run the selected mode:target pairs (Optional)'
+        required: false
+        type: string
 
 jobs:
   init-submodules:
@@ -40,6 +43,7 @@ jobs:
       mode: ${{ matrix.mode }}
       target: ${{ matrix.target }}
       gcchash: ${{ needs.init-submodules.outputs.gcchash }}
+      multilib: 'multilib'
       multitarget: ${{ github.event.inputs.multi_target }}
 
   rvv-intrinsic-testing:

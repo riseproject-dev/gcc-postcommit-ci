@@ -8,6 +8,9 @@ inputs:
   output-dir:
     required: true
     description: 'Absolute path to the output directory'
+  repository:
+    required: true
+    description: 'Repository to search when the artifact is not in the current workflow'
 
 runs:
   using: "composite"
@@ -30,5 +33,5 @@ runs:
       run: |
         pip install pygithub requests
         cd riscv-gnu-toolchain
-        python ./scripts/download_artifact.py -name ${{ inputs.build-artifact-name }} -repo patrick-rivos/gcc-postcommit-ci -token ${{ inputs.github-token }} -outdir ${{ inputs.output-dir }}
+        python ./scripts/download_artifact.py -name ${{ inputs.build-artifact-name }} -repo ${{ inputs.repository }} -token ${{ inputs.github-token }} -outdir ${{ inputs.output-dir }}
       continue-on-error: true
