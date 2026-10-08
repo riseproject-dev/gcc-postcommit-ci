@@ -136,7 +136,10 @@ jobs:
             riscv-gnu-toolchain/glibc
             riscv-gnu-toolchain/newlib
             riscv-gnu-toolchain/qemu
-          key: ${{ inputs.prefix }}submodules-archive-16 # Numbered archive to allow for easy transition when bumping submodules
+          key: ${{ inputs.prefix }}submodules-archive-17 # Invalidate cached source URLs after the mirror switch
+
+      - name: Synchronize submodule URLs
+        run: git submodule sync --recursive
 
       - name: Initialize gcc
         if: ${{ steps.retrieve-cache.outputs.cache-hit != 'true' }}
@@ -160,7 +163,7 @@ jobs:
         run: |
           rm -rf binutils
           # Use the mirror since github tends to be pretty reliable for cloning.
-          git clone https://github.com/bminor/binutils-gdb.git binutils
+          git clone https://github.com/gnutools/binutils-gdb.git binutils
           cd binutils
           git checkout ${{ inputs.binutils_branch }}
           git pull
@@ -170,6 +173,7 @@ jobs:
         working-directory: ./riscv-gnu-toolchain
         run: |
           cd binutils
+          git remote set-url origin https://github.com/gnutools/binutils-gdb.git
           git checkout ${{ inputs.binutils_branch }}
           git pull
 
@@ -736,7 +740,10 @@ jobs:
             riscv-gnu-toolchain/glibc
             riscv-gnu-toolchain/newlib
             riscv-gnu-toolchain/qemu
-          key: ${{ inputs.prefix }}submodules-archive-16 # Numbered archive to allow for easy transition when bumping submodules
+          key: ${{ inputs.prefix }}submodules-archive-17 # Invalidate cached source URLs after the mirror switch
+
+      - name: Synchronize submodule URLs
+        run: git submodule sync --recursive
 
       - name: Initialize gcc
         if: ${{ steps.retrieve-cache.outputs.cache-hit != 'true' }}
@@ -760,7 +767,7 @@ jobs:
         run: |
           rm -rf binutils
           # Use the mirror since github tends to be pretty reliable for cloning.
-          git clone https://github.com/bminor/binutils-gdb.git binutils
+          git clone https://github.com/gnutools/binutils-gdb.git binutils
           cd binutils
           git checkout ${{ inputs.binutils_branch }}
           git pull
@@ -770,6 +777,7 @@ jobs:
         working-directory: ./riscv-gnu-toolchain
         run: |
           cd binutils
+          git remote set-url origin https://github.com/gnutools/binutils-gdb.git
           git checkout ${{ inputs.binutils_branch }}
           git pull
 
