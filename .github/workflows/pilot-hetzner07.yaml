@@ -1,0 +1,179 @@
+name: Hetzner 07 isolated pilot
+
+# Deliberately branch-only: no schedule, pull_request, production reports, or
+# production runner label. Start the pilot listener with --once after review.
+on:
+  push:
+    branches: [pilot/hetzner-07-20261030]
+    paths:
+      - .github/workflows/pilot-hetzner07.yaml
+      - configure-scripts/rv64gcv-lp64d
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: hetzner07-isolated-pilot
+  cancel-in-progress: false
+
+env:
+  GCC_SHA: 78cfe216a8e042830325df586eb179e18cd3d37f
+  TOOLCHAIN_SHA: 094a1ae8541c848a3785d6fae348616ae5a9d544
+  SOURCE_CI_SHA: d988e3b18e5276b8ce9103b929bda1937b145ec0
+  SOURCE_RUN_ID: '41052214595'
+  SOURCE_ARTIFACT_ID: '12975511197'
+  GIT_TERMINAL_PROMPT: '0'
+
+jobs:
+  newlib-rv64gcv-pilot:
+    if: >-
+      github.repository == 'riseproject-dev/gcc-postcommit-ci' &&
+      github.ref == 'refs/heads/pilot/hetzner-07-20261030' &&
+      github.event_name == 'push'
+    runs-on: [self-hosted, linux, x64, rise-gcc-ci-pilot-07]
+    timeout-minutes: 1440
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Verify dedicated runner and preinstalled dependencies
+        run: |
+          test "$RUNNER_NAME" = rise-gcc-ci-07-pilot
+          test "$(hostname)" = rise-gcc-ci-07
+          test "$(id -un)" = rise-gcc-ci
+          test "$(id -u)" -ne 0
+          if sudo -n true 2>/dev/null; then
+            echo 'Unexpected sudo privilege on the pilot account' >&2
+            exit 1
+          fi
+          for tool in gcc g++ make git gh python python3 pip3 autoconf automake bison flex \
+                      gawk gperf cmake ninja pkg-config expect tclsh dtc zip unzip tar; do
+            command -v "$tool"
+          done
+          python3 -c 'import elftools, venv'
+          expect -v
+          tclsh <<< 'puts [info patchlevel]'
+          df -h .
+          free -h
+
+      - name: Checkout the reviewed pilot revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          submodules: 'true'
+          sparse-checkout: |
+            .github
+            configure-scripts
+            test
+            riscv-gnu-toolchain
+
+      - name: Verify source artifact provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p pilot-artifacts
+          test "$(git -C riscv-gnu-toolchain rev-parse HEAD)" = "$TOOLCHAIN_SHA"
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN_ID" > pilot-artifacts/source-run.json
+          jq -e --arg sha "$SOURCE_CI_SHA" \
+            '.head_sha == $sha and .head_branch == "main" and .event == "schedule" and .path == ".github/workflows/run-frequent.yaml"' \
+            pilot-artifacts/source-run.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$SOURCE_ARTIFACT_ID" > pilot-artifacts/source-artifact.json
+          jq -e --arg name "gcc-sources-$GCC_SHA" --arg run "$SOURCE_RUN_ID" \
+            '.name == $name and .expired == false and (.workflow_run.id | tostring) == $run' \
+            pilot-artifacts/source-artifact.json
+
+      - name: Download pinned source artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          artifact-ids: ${{ env.SOURCE_ARTIFACT_ID }}
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          github-token: ${{ github.token }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/pilot-sources-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Restore and verify compiler sources
+        run: |
+          unzip -oq "$RUNNER_TEMP/pilot-sources-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT/cache.zip" -d riscv-gnu-toolchain
+          test "$(git -C riscv-gnu-toolchain/gcc rev-parse HEAD)" = "$GCC_SHA"
+          test ! -e riscv-gnu-toolchain/build
+          # Use the same RISE allowlists as the production test action.
+          mv riscv-gnu-toolchain/test riscv-gnu-toolchain/test.toolchain-original
+          cp -a test riscv-gnu-toolchain/test
+          {
+            printf 'runner=%s\nworkflow_sha=%s\ngcc_sha=%s\ntoolchain_sha=%s\n' \
+              "$RUNNER_NAME" "$GITHUB_SHA" "$GCC_SHA" "$TOOLCHAIN_SHA"
+            printf 'target=newlib:rv64gcv-lp64d\nparallel_jobs=20\n'
+            sha256sum configure-scripts/rv64gcv-lp64d
+            gcc --version | head -n 1
+            python3 --version
+          } > pilot-artifacts/build-metadata.txt
+
+      - name: Configure production multilib target without sudo
+        working-directory: riscv-gnu-toolchain
+        run: |
+          mkdir build
+          cd build
+          ../../configure-scripts/rv64gcv-lp64d 2>&1 | tee "$GITHUB_WORKSPACE/pilot-artifacts/configure.log"
+          # Match production's Ubuntu 24.04 user-site Python handling.
+          sed -i 's/ --user / --user --break-system-packages /g' Makefile
+
+      - name: Build newlib multilib toolchain
+        id: build
+        working-directory: riscv-gnu-toolchain/build
+        run: |
+          make -j20 --output-sync=target newlib 2>&1 | tee "$GITHUB_WORKSPACE/pilot-artifacts/build.log"
+          bin/riscv64-unknown-elf-gcc --print-multi-lib | tee "$GITHUB_WORKSPACE/pilot-artifacts/multilibs.txt"
+
+      - name: Build simulator and DejaGnu prerequisites
+        id: simulator
+        working-directory: riscv-gnu-toolchain/build
+        run: |
+          make -j20 --output-sync=target build-sim stamps/build-dejagnu 2>&1 | tee "$GITHUB_WORKSPACE/pilot-artifacts/simulator.log"
+          bin/qemu-riscv32 --version
+          bin/qemu-riscv64 --version
+
+      - name: Run full GCC multilib tests and preserve failure status
+        id: tests
+        working-directory: riscv-gnu-toolchain/build
+        run: |
+          set +e
+          make -j20 --output-sync=target report-newlib 2>&1 | tee "$GITHUB_WORKSPACE/pilot-artifacts/tests.log"
+          pipeline_status=("${PIPESTATUS[@]}")
+          set -e
+          printf '%s\n' "${pipeline_status[0]}" > "$GITHUB_WORKSPACE/pilot-artifacts/tests-exit-code.txt"
+          test "${pipeline_status[1]}" -eq 0
+          test -f stamps/check-gcc-newlib
+          mapfile -d '' summaries < <(find build-gcc-newlib-stage2/gcc/testsuite -type f -name '*.sum' -size +0c -print0)
+          test "${#summaries[@]}" -gt 0
+          grep -E '=== .* Summary ===|# of expected passes' "${summaries[@]}" > "$GITHUB_WORKSPACE/pilot-artifacts/test-summary.txt"
+          exit "${pipeline_status[0]}"
+
+      - name: Collect diagnostic files even on failure
+        if: always()
+        run: |
+          mkdir -p pilot-artifacts
+          if test -f riscv-gnu-toolchain/build/config.log; then
+            cp riscv-gnu-toolchain/build/config.log pilot-artifacts/
+          fi
+          if test -d riscv-gnu-toolchain/build/build-gcc-newlib-stage2/gcc/testsuite; then
+            find riscv-gnu-toolchain/build/build-gcc-newlib-stage2/gcc/testsuite \
+              -type f \( -name '*.sum' -o -name '*.log' \) -print0 |
+              tar --null -T - -czf pilot-artifacts/testsuite-logs.tar.gz
+          fi
+          {
+            echo '## Isolated Hetzner 07 pilot'
+            printf 'GCC: `%s`\n\n' "$GCC_SHA"
+            echo 'Target: newlib / rv64gcv-lp64d multilib (production configure script).'
+            echo 'No production issue, baseline, dashboard, or Patchwork report is written.'
+            echo 'Inspect the test exit code and summaries; registration or build success alone is not a valid baseline.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload pilot logs and test summaries
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: hetzner07-pilot-${{ github.run_id }}-${{ github.run_attempt }}
+          path: pilot-artifacts/
+          if-no-files-found: error
+          retention-days: 7
