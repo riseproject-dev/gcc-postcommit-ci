@@ -64,7 +64,18 @@ architectures=(
   rv64imafdcv_zicond_zawrs_zbc_zvkng_zvksg_zvbb_zvbc_zicsr_zba_zbb_zbs_zicbom_zicbop_zicboz_zfhmin_zkt
 )
 
-for index in "${!architectures[@]}"; do
+# Optional arguments select variants to finish after a partial diagnostic run.
+selected=("$@")
+if test "${#selected[@]}" -eq 0; then selected=(0 1 2 3); fi
+declare -A seen=()
+for index in "${selected[@]}"; do
+  case "$index" in 0|1|2|3) ;; *) echo "Invalid variant: $index" >&2; exit 2 ;; esac
+  if test -n "${seen[$index]:-}"; then echo "Duplicate variant: $index" >&2; exit 2; fi
+  seen[$index]=1
+done
+
+run_variant() {
+  local index=$1 arch abi suite_path suite flags result
   arch=${architectures[$index]}
   abi=lp64d
   if [[ "$arch" == rv32* ]]; then abi=ilp32d; fi
@@ -84,13 +95,26 @@ for index in "${!architectures[@]}"; do
   printf '%s\t%s\n' "$arch" "$result" >> "$diagnostics/make-exit-codes.tsv"
   if test "$result" -ne 0; then
     echo "Diagnostic make command failed for $arch (exit $result)." >&2
-    exit "$result"
+    return "$result"
   fi
   test -s "$suite_path/g++/g++.sum"
   grep -F '=== g++ Summary ===' "$suite_path/g++/g++.sum" > /dev/null
   cp "$suite_path/g++/g++.sum" "$diagnostics/modules-$index.sum"
   cp "$suite_path/g++/g++.log" "$diagnostics/modules-$index-debug.log"
+}
+
+# Variants have separate directories. Parallelize across variants only, keeping
+# each make/runtest invocation serial so module cache effects remain isolated.
+pids=()
+for index in "${selected[@]}"; do
+  run_variant "$index" &
+  pids+=("$!")
 done
+failed=0
+for pid in "${pids[@]}"; do
+  if ! wait "$pid"; then failed=1; fi
+done
+if test "$failed" -ne 0; then exit 1; fi
 
 echo "Diagnostic execution complete: $diagnostics"
 echo 'Inspect the new .sum files; make success does not mean GCC tests passed.'
