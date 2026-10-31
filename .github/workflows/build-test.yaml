@@ -140,8 +140,8 @@ jobs:
           cd gcc
           git rev-parse HEAD
 
-      - name: Install dependencies
-        run: sudo ./.github/setup-apt.sh
+      - name: Prepare dependencies
+        uses: ./.github/actions/common/setup-dependencies
 
       # Only 32/64gc multilibs run on github-hosted runners
       - name: Configure
@@ -217,11 +217,8 @@ jobs:
           cd gcc
           git rev-parse HEAD
 
-      - name: Install dependencies
-        run: |
-          sudo ./.github/setup-apt.sh
-          sudo apt install python3 -y
-          sudo apt install python-is-python3 -y
+      - name: Prepare dependencies
+        uses: ./.github/actions/common/setup-dependencies
 
       # Only 32/64gc multilibs run on github-hosted runners
       - name: Configure

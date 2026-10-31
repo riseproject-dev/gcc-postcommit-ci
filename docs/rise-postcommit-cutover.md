@@ -47,6 +47,15 @@ baseline source.
 
 GitHub-hosted jobs continue to use `ubuntu-24.04`.
 
+Provision self-hosted Ubuntu machines using a maintenance account before
+starting their runner services. Run the toolchain's `.github/setup-apt.sh` and
+install `python-is-python3`, `tcl-dev`, `libpixman-1-dev`, `python3-venv`, and
+`python3-pyelftools`. Verify the result as the runner user with
+`bash .github/actions/common/setup-dependencies/check-dependencies.sh`.
+The runner account does not need sudo: self-hosted jobs check the preinstalled
+tools and development packages, while GitHub-hosted jobs install dependencies
+on their disposable image.
+
 ## Bootstrap
 
 1. Merge the RISE toolchain submodule update first.
