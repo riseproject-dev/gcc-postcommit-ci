@@ -60,18 +60,16 @@ class PilotSummaryComparisonTests(unittest.TestCase):
             "ERROR: case /home/test/runner/_work/gcc-postcommit-ci/gcc-postcommit-ci/"
             + suffix,
         )
-        self.write(
-            self.new,
-            "ERROR: case /var/lib/test/runner/_work/gcc-postcommit-ci/gcc-postcommit-ci/"
-            + suffix,
-        )
-        self.assertTrue(compare(self.old, self.new)["accepted"])
-        self.write(
-            self.new,
-            "ERROR: case /var/lib/test/runner/_work/gcc-postcommit-ci/gcc-postcommit-ci/"
-            + suffix.replace("plugin needed", "different error"),
-        )
-        self.assertFalse(compare(self.old, self.new)["accepted"])
+        for root in ("/var/lib/test/runner", "/srv/rise-gcc-ci-pilot07"):
+            with self.subTest(root=root):
+                prefix = f"ERROR: case {root}/_work/gcc-postcommit-ci/gcc-postcommit-ci/"
+                self.write(self.new, prefix + suffix)
+                self.assertTrue(compare(self.old, self.new)["accepted"])
+                self.write(
+                    self.new,
+                    prefix + suffix.replace("plugin needed", "different error"),
+                )
+                self.assertFalse(compare(self.old, self.new)["accepted"])
 
     def test_changed_target_set_is_rejected(self):
         self.write(self.new, target="riscv-sim/-march=rv32gcv/-mabi=ilp32d")

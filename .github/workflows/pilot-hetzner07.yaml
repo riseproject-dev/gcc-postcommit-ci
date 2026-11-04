@@ -19,7 +19,7 @@ concurrency:
 
 env:
   GCC_SHA: 78cfe216a8e042830325df586eb179e18cd3d37f
-  TOOLCHAIN_SHA: 094a1ae8541c848a3785d6fae348616ae5a9d544
+  TOOLCHAIN_SHA: 12ea3d2ca8a8530ffa9dc0bf583aa0f713370940
   SOURCE_CI_SHA: d988e3b18e5276b8ce9103b929bda1937b145ec0
   SOURCE_RUN_ID: '41052214595'
   SOURCE_ARTIFACT_ID: '12975511197'
@@ -43,6 +43,12 @@ jobs:
           test "$(hostname)" = rise-gcc-ci-07
           test "$(id -un)" = rise-gcc-ci
           test "$(id -u)" -ne 0
+          # pr127778 scans debug strings as well as instructions; /var/lib
+          # introduces a false match for its unbounded \\mli expression.
+          case "$GITHUB_WORKSPACE" in
+            /srv/rise-gcc-ci-pilot07/_work/*) ;;
+            *) echo 'Unexpected pilot workspace path' >&2; exit 1 ;;
+          esac
           if sudo -n true 2>/dev/null; then
             echo 'Unexpected sudo privilege on the pilot account' >&2
             exit 1
@@ -95,6 +101,7 @@ jobs:
       - name: Restore and verify compiler sources
         run: |
           unzip -oq "$RUNNER_TEMP/pilot-sources-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT/cache.zip" -d riscv-gnu-toolchain
+          test "$(git -C riscv-gnu-toolchain rev-parse HEAD)" = "$TOOLCHAIN_SHA"
           test "$(git -C riscv-gnu-toolchain/gcc rev-parse HEAD)" = "$GCC_SHA"
           test ! -e riscv-gnu-toolchain/build
           # Use the same RISE allowlists as the production test action.
@@ -104,6 +111,7 @@ jobs:
             printf 'runner=%s\nworkflow_sha=%s\ngcc_sha=%s\ntoolchain_sha=%s\n' \
               "$RUNNER_NAME" "$GITHUB_SHA" "$GCC_SHA" "$TOOLCHAIN_SHA"
             printf 'target=newlib:rv64gcv-lp64d\nparallel_jobs=20\n'
+            printf 'workspace=%s\n' "$GITHUB_WORKSPACE"
             sha256sum configure-scripts/rv64gcv-lp64d
             gcc --version | head -n 1
             python3 --version

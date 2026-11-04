@@ -17,7 +17,7 @@ import re
 ADVERSE = {"FAIL", "XPASS", "UNRESOLVED", "ERROR", "WARNING"}
 STATUSES = ADVERSE | {"PASS", "XFAIL", "UNSUPPORTED"}
 WORKSPACE = re.compile(
-    r"/(?:home|var/lib)/\S*?/_work/gcc-postcommit-ci/gcc-postcommit-ci/"
+    r"/(?:home|var/lib|srv)/\S*?/_work/gcc-postcommit-ci/gcc-postcommit-ci/"
 )
 
 
