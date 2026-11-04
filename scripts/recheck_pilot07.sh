@@ -83,7 +83,9 @@ run_variant() {
   # reused module caches across either parallel workers or multilib variants.
   suite_path=$(mktemp -d "$gcc_build/testsuite-pilot-recheck-$index-XXXXXX")
   suite=${suite_path##*/}
-  flags="modules.exp plugin.exp=std-module-exports-c++20.C --target_board=riscv-sim/-march=$arch/-mabi=$abi/-mcmodel=medlow"
+  # Match both std_module_exports_plugin.cc and its std-module-exports inputs:
+  # plugin.exp and plugin-support.exp each filter their respective filenames.
+  flags="modules.exp plugin.exp=std*module* --target_board=riscv-sim/-march=$arch/-mabi=$abi/-mcmodel=medlow"
   printf '%s\t%s\n' "$arch" "$suite_path" >> "$diagnostics/test-directories.tsv"
   set +e
   timeout --signal=TERM --kill-after=60s 45m \
@@ -99,6 +101,8 @@ run_variant() {
   fi
   test -s "$suite_path/g++/g++.sum"
   grep -F '=== g++ Summary ===' "$suite_path/g++/g++.sum" > /dev/null
+  grep -E '^(PASS|FAIL): g[+][+][.]dg/modules/pr102576' "$suite_path/g++/g++.sum" > /dev/null
+  grep -E '^(PASS|FAIL): g[+][+][.]dg/plugin/std-module-exports-c[+][+]20[.]C' "$suite_path/g++/g++.sum" > /dev/null
   cp "$suite_path/g++/g++.sum" "$diagnostics/modules-$index.sum"
   cp "$suite_path/g++/g++.log" "$diagnostics/modules-$index-debug.log"
 }
