@@ -1,0 +1,17 @@
+name: Prepare toolchain dependencies
+description: Install dependencies on GitHub-hosted runners or verify a provisioned self-hosted runner
+runs:
+  using: composite
+  steps:
+    - name: Install dependencies on the GitHub-hosted image
+      if: ${{ runner.environment == 'github-hosted' }}
+      shell: bash
+      working-directory: riscv-gnu-toolchain
+      run: |
+        sudo ./.github/setup-apt.sh
+        sudo apt install python3 python-is-python3 -y
+
+    - name: Verify preinstalled self-hosted dependencies
+      if: ${{ runner.environment != 'github-hosted' }}
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/check-dependencies.sh"

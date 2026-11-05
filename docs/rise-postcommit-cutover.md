@@ -47,6 +47,24 @@ baseline source.
 
 GitHub-hosted jobs continue to use `ubuntu-24.04`.
 
+Provision self-hosted Ubuntu machines using a maintenance account before
+starting their runner services. Run the toolchain's `.github/setup-apt.sh` and
+install `python-is-python3`, `tcl-dev`, `libpixman-1-dev`, `python3-venv`, and
+`python3-pyelftools`. Verify the result as the runner user with
+`bash .github/actions/common/setup-dependencies/check-dependencies.sh`.
+The runner account does not need sudo: self-hosted jobs check the preinstalled
+tools and development packages, while GitHub-hosted jobs install dependencies
+on their disposable image.
+
+Use an absolute work directory such as `/srv/rise-gcc-ci/<runner>/_work` when
+registering a runner. GCC's `pr127778.c` test at revision `78cfe216a8e` matches
+`lib` in `/var/lib/...` debug strings with its unbounded `\mli` assembler
+pattern, producing a false failure. Keep the account home and runner installation
+separate from the work directory. If the service uses `ProtectSystem=strict`,
+include the runner installation, account home and work directory in its
+`ReadWritePaths`. Test a fresh build in the configured directory before enabling
+the production runner label.
+
 ## Bootstrap
 
 1. Merge the RISE toolchain submodule update first.

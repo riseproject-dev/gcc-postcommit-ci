@@ -68,9 +68,11 @@ runs:
         id: pull-coordination
         run: |
           cd gcc
-          git config --add remote.origin.fetch "+refs/vendors/riscv/*:refs/remotes/upstream/vendors/riscv/*"
-          git fetch
-          git checkout upstream/vendors/riscv/heads/gcc-15-with-riscv-opts
+          # The GitHub mirror does not publish GCC vendor refs. Fetch this
+          # branch explicitly from upstream without changing the mirror remote.
+          git fetch --no-tags https://gcc.gnu.org/git/gcc.git \
+            +refs/vendors/riscv/heads/gcc-15-with-riscv-opts:refs/remotes/upstream/vendors/riscv/heads/gcc-15-with-riscv-opts
+          git checkout --detach upstream/vendors/riscv/heads/gcc-15-with-riscv-opts
         continue-on-error: true
 
       - name: Sleep and retry
@@ -81,9 +83,9 @@ runs:
           echo "Failed to checkout and pull gcc. Retrying in 1 min"
           sleep 60
           cd gcc
-          git config --add remote.origin.fetch "+refs/vendors/riscv/*:refs/remotes/upstream/vendors/riscv/*"
-          git fetch
-          git checkout upstream/vendors/riscv/heads/gcc-15-with-riscv-opts
+          git fetch --no-tags https://gcc.gnu.org/git/gcc.git \
+            +refs/vendors/riscv/heads/gcc-15-with-riscv-opts:refs/remotes/upstream/vendors/riscv/heads/gcc-15-with-riscv-opts
+          git checkout --detach upstream/vendors/riscv/heads/gcc-15-with-riscv-opts
 
       - name: Checkout release branch
         shell: bash
