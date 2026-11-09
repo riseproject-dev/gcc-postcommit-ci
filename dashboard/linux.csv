@@ -54986,3 +54986,15 @@ c75f748aacd6b71832e0d62869617e62e605b646,2026-11-07 00:16:34 +0000,linux-rv64gc 
 c75f748aacd6b71832e0d62869617e62e605b646,2026-11-07 00:16:34 +0000,linux-rv32gc ilp32d medlow -gfortran,linux,rv32gc ilp32d medlow ,gfortran,114,124
 c75f748aacd6b71832e0d62869617e62e605b646,2026-11-07 00:16:34 +0000,linux-rv32gc ilp32d medlow -g++,linux,rv32gc ilp32d medlow ,g++,9,23
 c75f748aacd6b71832e0d62869617e62e605b646,2026-11-07 00:16:34 +0000,linux-rv32gc ilp32d medlow -gcc,linux,rv32gc ilp32d medlow ,gcc,77,422
+5700237a783669fa2de561ca527731d6725f0471,2026-11-07 14:05:07 -0500,linux-rv64gc_zba_zbb_zbc_zbs lp64d medlow -gfortran,linux,rv64gc_zba_zbb_zbc_zbs lp64d medlow ,gfortran,2,12
+5700237a783669fa2de561ca527731d6725f0471,2026-11-07 14:05:07 -0500,linux-rv64gc_zba_zbb_zbc_zbs lp64d medlow -g++,linux,rv64gc_zba_zbb_zbc_zbs lp64d medlow ,g++,6,19
+5700237a783669fa2de561ca527731d6725f0471,2026-11-07 14:05:07 -0500,linux-rv64gc_zba_zbb_zbc_zbs lp64d medlow -gcc,linux,rv64gc_zba_zbb_zbc_zbs lp64d medlow ,gcc,72,403
+5700237a783669fa2de561ca527731d6725f0471,2026-11-07 14:05:07 -0500,linux-rv64gc lp64d medlow -gfortran,linux,rv64gc lp64d medlow ,gfortran,2,12
+5700237a783669fa2de561ca527731d6725f0471,2026-11-07 14:05:07 -0500,linux-rv64gc lp64d medlow -g++,linux,rv64gc lp64d medlow ,g++,6,19
+5700237a783669fa2de561ca527731d6725f0471,2026-11-07 14:05:07 -0500,linux-rv64gc lp64d medlow -gcc,linux,rv64gc lp64d medlow ,gcc,72,403
+5700237a783669fa2de561ca527731d6725f0471,2026-11-07 14:05:07 -0500,linux-rv32gc_zba_zbb_zbc_zbs ilp32d medlow -gfortran,linux,rv32gc_zba_zbb_zbc_zbs ilp32d medlow ,gfortran,114,124
+5700237a783669fa2de561ca527731d6725f0471,2026-11-07 14:05:07 -0500,linux-rv32gc_zba_zbb_zbc_zbs ilp32d medlow -g++,linux,rv32gc_zba_zbb_zbc_zbs ilp32d medlow ,g++,10,26
+5700237a783669fa2de561ca527731d6725f0471,2026-11-07 14:05:07 -0500,linux-rv32gc_zba_zbb_zbc_zbs ilp32d medlow -gcc,linux,rv32gc_zba_zbb_zbc_zbs ilp32d medlow ,gcc,79,426
+5700237a783669fa2de561ca527731d6725f0471,2026-11-07 14:05:07 -0500,linux-rv32gc ilp32d medlow -gfortran,linux,rv32gc ilp32d medlow ,gfortran,114,124
+5700237a783669fa2de561ca527731d6725f0471,2026-11-07 14:05:07 -0500,linux-rv32gc ilp32d medlow -g++,linux,rv32gc ilp32d medlow ,g++,10,26
+5700237a783669fa2de561ca527731d6725f0471,2026-11-07 14:05:07 -0500,linux-rv32gc ilp32d medlow -gcc,linux,rv32gc ilp32d medlow ,gcc,79,424
