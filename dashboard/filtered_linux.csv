@@ -55034,3 +55034,15 @@ bcf14085d8270f173ee6f1f4f9ae8352959e5ca1,2026-11-07 18:19:25 -0800,linux-rv64gc_
 bcf14085d8270f173ee6f1f4f9ae8352959e5ca1,2026-11-07 18:19:25 -0800,linux-rv64gc lp64d medlow -gfortran,linux,rv64gc lp64d medlow ,gfortran,2,12
 bcf14085d8270f173ee6f1f4f9ae8352959e5ca1,2026-11-07 18:19:25 -0800,linux-rv64gc lp64d medlow -g++,linux,rv64gc lp64d medlow ,g++,2,6
 bcf14085d8270f173ee6f1f4f9ae8352959e5ca1,2026-11-07 18:19:25 -0800,linux-rv64gc lp64d medlow -gcc,linux,rv64gc lp64d medlow ,gcc,6,20
+b887c1777de3a68c4eb246ff8ee7cd90f83d67fe,2026-11-08 21:15:10 +0100,linux-rv64gc_zba_zbb_zbc_zbs lp64d medlow -gfortran,linux,rv64gc_zba_zbb_zbc_zbs lp64d medlow ,gfortran,2,12
+b887c1777de3a68c4eb246ff8ee7cd90f83d67fe,2026-11-08 21:15:10 +0100,linux-rv64gc_zba_zbb_zbc_zbs lp64d medlow -g++,linux,rv64gc_zba_zbb_zbc_zbs lp64d medlow ,g++,2,6
+b887c1777de3a68c4eb246ff8ee7cd90f83d67fe,2026-11-08 21:15:10 +0100,linux-rv64gc_zba_zbb_zbc_zbs lp64d medlow -gcc,linux,rv64gc_zba_zbb_zbc_zbs lp64d medlow ,gcc,5,19
+b887c1777de3a68c4eb246ff8ee7cd90f83d67fe,2026-11-08 21:15:10 +0100,linux-rv32gc_zba_zbb_zbc_zbs ilp32d medlow -gfortran,linux,rv32gc_zba_zbb_zbc_zbs ilp32d medlow ,gfortran,112,122
+b887c1777de3a68c4eb246ff8ee7cd90f83d67fe,2026-11-08 21:15:10 +0100,linux-rv32gc_zba_zbb_zbc_zbs ilp32d medlow -g++,linux,rv32gc_zba_zbb_zbc_zbs ilp32d medlow ,g++,6,13
+b887c1777de3a68c4eb246ff8ee7cd90f83d67fe,2026-11-08 21:15:10 +0100,linux-rv32gc_zba_zbb_zbc_zbs ilp32d medlow -gcc,linux,rv32gc_zba_zbb_zbc_zbs ilp32d medlow ,gcc,14,47
+b887c1777de3a68c4eb246ff8ee7cd90f83d67fe,2026-11-08 21:15:10 +0100,linux-rv32gc ilp32d medlow -gfortran,linux,rv32gc ilp32d medlow ,gfortran,112,122
+b887c1777de3a68c4eb246ff8ee7cd90f83d67fe,2026-11-08 21:15:10 +0100,linux-rv32gc ilp32d medlow -g++,linux,rv32gc ilp32d medlow ,g++,6,13
+b887c1777de3a68c4eb246ff8ee7cd90f83d67fe,2026-11-08 21:15:10 +0100,linux-rv32gc ilp32d medlow -gcc,linux,rv32gc ilp32d medlow ,gcc,14,41
+b887c1777de3a68c4eb246ff8ee7cd90f83d67fe,2026-11-08 21:15:10 +0100,linux-rv64gc lp64d medlow -gfortran,linux,rv64gc lp64d medlow ,gfortran,2,12
+b887c1777de3a68c4eb246ff8ee7cd90f83d67fe,2026-11-08 21:15:10 +0100,linux-rv64gc lp64d medlow -g++,linux,rv64gc lp64d medlow ,g++,2,6
+b887c1777de3a68c4eb246ff8ee7cd90f83d67fe,2026-11-08 21:15:10 +0100,linux-rv64gc lp64d medlow -gcc,linux,rv64gc lp64d medlow ,gcc,6,22
