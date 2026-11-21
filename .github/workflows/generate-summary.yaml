@@ -64,6 +64,7 @@ permissions:
 
 env:
   POSTCOMMIT_REPOSITORY: ${{ github.repository }}
+  TRUNK_STATUS: ${{ inputs.prefix == '' && inputs.issue_hash_prefix == 'Testsuite Status' && inputs.gcc_branch == 'master' }}
 
 jobs:
   check-early-exit:
@@ -390,17 +391,36 @@ jobs:
             https://api.github.com/rate_limit
 
       - name: Aggregate information
+        env:
+          REPORT_SHA: ${{ inputs.gcchash }}
+          ISSUE_TITLE: ${{ inputs.issue_hash_prefix }}
         run: |
           unzip summaries.zip
           unzip current_logs.zip
           unzip previous_logs.zip
           python ./scripts/aggregate.py \
-            -chash ${{ inputs.gcchash }} \
+            -chash "$REPORT_SHA" \
             -o temp_issue.md \
-            -title "${{ inputs.issue_hash_prefix }}"
+            -title "$ISSUE_TITLE"
           cat temp_issue.md
-          tail -n+5 temp_issue.md > issue.md
+          sed '1,/^---$/d' temp_issue.md > issue.md
           cat issue.md
+
+      - name: Verify trunk regression candidates
+        if: env.TRUNK_STATUS == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPORT_SHA: ${{ inputs.gcchash }}
+        run: python3 ../scripts/trunk_regressions.py --repo "$POSTCOMMIT_REPOSITORY" --sha "$REPORT_SHA"
+
+      - name: Archive the complete trunk test report
+        if: env.TRUNK_STATUS == 'true'
+        continue-on-error: true
+        id: report-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.gcchash }}-trunk-test-report-${{ github.run_attempt }}
+          path: riscv-gnu-toolchain/issue.md
 
       - name: Get labels
         id: issue-labels
@@ -435,10 +455,13 @@ jobs:
             https://api.github.com/rate_limit
 
       - name: Trim issue length # reduce the number of lines in final issue so github always creates issue
+        env:
+          REPORT_URL: ${{ steps.report-artifact.outputs.artifact-url }}
         run: |
           head -c 65000 issue.md > trimmed_issue.md
           if [ $(stat -c%s issue.md) -gt 65000 ]; then
             printf "\n\`\`\`\nIssue text has been trimmed. Please check the following Gist Link for the untrimmed issue.\n" >> trimmed_issue.md
+            if [[ -n "$REPORT_URL" ]]; then printf '\n[Complete test report](%s)\n' "$REPORT_URL" >> trimmed_issue.md; fi
             FILE_SIZE=$(stat -c%s "issue.md")
             ONE_MB_IN_BYTES=1048000
             if [ "$FILE_SIZE" -gt "$ONE_MB_IN_BYTES" ]; then
@@ -473,8 +496,8 @@ jobs:
 
       - name: Trim comment length # reduce the number of lines in final comment so github always create comment
         run: |
-          printf "## Important unresolved errors\n" > trimmed_comment.md
-          printf 'A list of all unresolved "internal compiler error", "Segmentation fault", "test for excess errors" failures present at this hash\n\n' >> trimmed_comment.md
+          printf "## Selected current test failures\n\n" > trimmed_comment.md
+          printf 'These include internal compiler errors, excess diagnostics and execution failures. On targets without a distinct baseline, these are first observations. See the issue body for the comparison.\n\n' >> trimmed_comment.md
           printf -- '---\n\n' >> trimmed_comment.md
           head -c 65000 unresolved_important_failures.md >> trimmed_comment.md
           if [ $(stat -c%s unresolved_important_failures.md) -gt 65000 ]; then
@@ -783,12 +806,16 @@ jobs:
 
       - name: Initialize Bisection Hash
         id: bisection-hash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ inputs.issue_num }}
         run: |
           sudo apt remove python3-pip
           wget https://bootstrap.pypa.io/get-pip.py
           sudo python3 get-pip.py
           pip install pygithub requests
-          export ORIG_GCCHASH=$(python ./scripts/scrape_issue_info.py -num ${{ inputs.issue_num }} -token ${{ secrets.GITHUB_TOKEN }})
+          ORIG_GCCHASH=$(python ./scripts/scrape_issue_info.py -num "$ISSUE_NUMBER" -token "$GH_TOKEN")
+          [[ "$ORIG_GCCHASH" =~ ^[0-9a-f]{40}$ ]]
           echo $ORIG_GCCHASH
           echo "orig_gcchash=$ORIG_GCCHASH" >> "$GITHUB_OUTPUT"
 
@@ -881,12 +908,34 @@ jobs:
           retention-days: 90
 
       - name: Aggregate information
+        env:
+          REPORT_SHA: ${{ env.TRUNK_STATUS == 'true' && steps.bisection-hash.outputs.orig_gcchash || inputs.gcchash }}
+          ISSUE_TITLE: ${{ inputs.issue_hash_prefix }}
         run: |
           python ./scripts/aggregate.py \
-            -chash ${{ inputs.gcchash }} \
+            -chash "$REPORT_SHA" \
             -o issue.md \
-            -title "${{ inputs.issue_hash_prefix }}"
+            -title "$ISSUE_TITLE"
           cat issue.md
+
+      - name: Verify regenerated trunk regression candidates
+        if: env.TRUNK_STATUS == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPORT_SHA: ${{ steps.bisection-hash.outputs.orig_gcchash }}
+        run: |
+          mv issue.md temp_issue.md
+          sed '1,/^---$/d' temp_issue.md > issue.md
+          python3 ../scripts/trunk_regressions.py --repo "$POSTCOMMIT_REPOSITORY" --sha "$REPORT_SHA"
+
+      - name: Archive the regenerated trunk test report
+        if: env.TRUNK_STATUS == 'true'
+        continue-on-error: true
+        id: report-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.bisection-hash.outputs.orig_gcchash }}-regenerated-trunk-test-report-${{ github.run_attempt }}
+          path: riscv-gnu-toolchain/issue.md
 
       - name: Print API usage info
         run: |
@@ -896,11 +945,45 @@ jobs:
             https://api.github.com/rate_limit
 
       - name: Trim issue length # reduce the number of lines in final issue so github always creates issue
+        env:
+          REPORT_URL: ${{ steps.report-artifact.outputs.artifact-url }}
         run: |
           head -c 65000 issue.md > trimmed_issue.md
-          if [ $(cat trimmed_issue.md | wc -l) -ne $(cat issue.md | wc -l) ]; then printf "\n\`\`\`\nIssue text has been trimmed. Please check logs for the untrimmed issue.\n" >> trimmed_issue.md; fi
+          if [ "$(stat -c%s issue.md)" -gt 65000 ]; then
+            printf "\n\`\`\`\nIssue text has been trimmed. See the run for the complete comparison.\n" >> trimmed_issue.md
+            if [[ -n "$REPORT_URL" ]]; then printf '\n[Complete test report](%s)\n' "$REPORT_URL" >> trimmed_issue.md; fi
+          fi
           run_id=${{ github.run_id }} && echo "Associated run is: ${{ github.server_url }}/${{ github.repository }}/actions/runs/$run_id" >> trimmed_issue.md
           cat trimmed_issue.md
+
+      # Trunk status titles may be shared by a production, staging or bisect
+      # issue. Update only the intended issue and preserve unrelated labels.
+      - name: Update regenerated trunk issue
+        if: env.TRUNK_STATUS == 'true' && (github.workflow != 'Staging' || inputs.gcchash == steps.bisection-hash.outputs.orig_gcchash)
+        uses: actions/github-script@v7
+        env:
+          REPORT_SHA: ${{ steps.bisection-hash.outputs.orig_gcchash }}
+          ORIGINAL_ISSUE_NUMBER: ${{ inputs.issue_num }}
+          STAGING_ISSUE_NUMBER: ${{ needs.generate-issues.outputs.new_issue_num }}
+        with:
+          script: |
+            const fs = require('fs');
+            const issueNumber = context.workflow === 'Staging' ? process.env.STAGING_ISSUE_NUMBER : process.env.ORIGINAL_ISSUE_NUMBER;
+            const params = { ...context.repo, issue_number: Number(issueNumber) };
+            const {data: issue} = await github.rest.issues.get(params);
+            if (issue.pull_request || issue.title !== `Testsuite Status ${process.env.REPORT_SHA}`) {
+              throw new Error('Regenerated report does not match the selected trunk issue');
+            }
+            const dir = 'riscv-gnu-toolchain';
+            const body = fs.readFileSync(`${dir}/trimmed_issue.md`, 'utf8');
+            const wanted = fs.readFileSync(`${dir}/labels.txt`, 'utf8').trim().split(',').filter(Boolean);
+            const managed = ['new-regressions', 'resolved-regressions', 'build-failure', 'testsuite-failure', 'invalid'];
+            if (wanted.some(label => ['build-failure', 'testsuite-failure', 'invalid'].includes(label))) {
+              managed.push('valid-baseline');
+            }
+            const preserved = issue.labels.map(label => label.name).filter(name => !managed.includes(name));
+            const labels = [...new Set([...preserved, ...wanted])];
+            await github.rest.issues.update({...params, body, labels});
 
       # Leave this for now since peter-evans doesn't have a good way
       # of updating the original issue comment since all the create
@@ -909,6 +992,7 @@ jobs:
       # Therefore will need toquery for issue comment id and then use that
       # with peter-evans/create-or-update-comment.
       - name: Create or update summary issue
+        if: env.TRUNK_STATUS != 'true'
         uses: JasonEtco/create-an-issue@v2
         id: create-issue
         env:
