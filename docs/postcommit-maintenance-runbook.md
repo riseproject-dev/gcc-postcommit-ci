@@ -9,13 +9,28 @@ they do not replace maintainer investigation or upstream bug reporting.
 Start with the open
 [`new-regressions` queue](https://github.com/riseproject-dev/gcc-postcommit-ci/issues?q=is%3Aissue+is%3Aopen+label%3Anew-regressions),
 then review open issues labelled `build-failure`, `testsuite-failure`, or
-`resolved-regressions`. If there are no new failures, no triage action is
-required.
+`resolved-regressions`. Check the latest trunk report's **Results needing
+review** section for new tests and gaps in baseline evidence.
 
 Each `Testsuite Status <gcc-hash>` issue must link to its Actions run. Use the
 run's `*-current-logs`, `*-previous-logs`, report, summary, and build-log
 artifacts when reproducing a result. Artifacts are retained for a limited time,
 so preserve the relevant excerpt in the upstream bug before it expires.
+
+For trunk, `new-regressions` means that at least one newly observed testsuite
+failure has a matching prior PASS in the original DejaGnu summaries. The issue
+links the two artifacts and lists the language, board configuration, compiler
+options and subtest. The comparison uses each target's own prior GCC revision.
+A timeout counts as an observed PASS → FAIL transition when the evidence
+matches. Reproducing it helps distinguish a compiler defect from runner or
+simulator variability.
+
+Use the unresolved table to track failures already present in the baseline.
+First observations, unexpected passes, and candidates with missing or ambiguous
+artifacts remain visible for review. Missing builds and testsuite results have
+their own labels and can coexist with verified regressions on another target.
+The per-revision status issues continue to serve as the dashboard history and
+as baseline records for pre-commit.
 
 ## New Regression Triage
 
